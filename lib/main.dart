@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+final countProvider = StateProvider((ref) => 0);
 void main() {
-  runApp(const MyApp());
+  // riverpodを使ううえでwidgetをproviderscopeで囲む必要がある
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -15,20 +18,15 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatefulWidget {
+// widgetRefクラスのオブジェクトをうけとるあtめに、StatefulWidgetをConsumerWidgetに変更する
+class MyHomePage extends ConsumerWidget {
   const MyHomePage({super.key});
 
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-// ----1ページ目----
-// 2ページ目とカウント値を共有する
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  // int _counter = 0;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    //buildメソッドの引数にwidgetRefの変数が追加される
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
@@ -44,8 +42,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 const Text(
                   'ボタンを押した回数',
                 ),
+                // 変数部分をrefに変更
                 Text(
-                  '$_counter',
+                  '${ref.watch(countProvider)}',
                   style: Theme.of(context).textTheme.headline4,
                 ),
               ],
@@ -65,9 +64,10 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          setState(() {
-            _counter++;
-          });
+          ref.read(countProvider.notifier).state++;
+          // setState(() {
+          //   _counter++;
+          // });
         },
         child: const Icon(Icons.add),
       ),
@@ -77,11 +77,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
 // ----2ページ目----
 // 1ページ目のカウント値を表示
-class MySecondPage extends StatelessWidget {
+class MySecondPage extends ConsumerWidget {
   const MySecondPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.red,
@@ -98,7 +98,7 @@ class MySecondPage extends StatelessWidget {
                   'ボタンを押した回数',
                 ),
                 Text(
-                  'ここに回数を表示',
+                  '${ref.watch(countProvider)}',
                   style: Theme.of(context).textTheme.headline4,
                 ),
               ],
@@ -113,7 +113,9 @@ class MySecondPage extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          ref.read(countProvider.notifier).state++;
+        },
         child: const Icon(Icons.add),
       ),
     );
